@@ -12,6 +12,7 @@ import Experts from "@/pages/Experts";
 import Admin from "@/pages/Admin";
 import Profile from "@/pages/Profile";
 import Help from "@/pages/Help";
+import Settings from "@/pages/Settings";
 
 export default function App() {
   return (
@@ -64,6 +65,14 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={["farmer", "expert", "admin", "public"]}>
                   <Profile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute allowedRoles={["farmer", "expert", "admin", "public"]}>
+                  <Settings />
                 </ProtectedRoute>
               } 
             />

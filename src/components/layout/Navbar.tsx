@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, Sprout, User, Bell, Search, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -55,6 +55,12 @@ export function Navbar() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+              <SheetHeader>
+                <SheetTitle>Navigation Menu</SheetTitle>
+                <SheetDescription>
+                  Access different sections of the platform.
+                </SheetDescription>
+              </SheetHeader>
               <nav className="flex flex-col gap-4 mt-8">
                 {filteredNavItems.map((item) => (
                   <Link
