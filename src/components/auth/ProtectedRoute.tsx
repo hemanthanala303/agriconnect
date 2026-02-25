@@ -18,6 +18,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     // Redirect to appropriate dashboard if role doesn't match
     if (user.role === "admin") return <Navigate to="/admin" replace />;
     if (user.role === "expert") return <Navigate to="/experts" replace />;
+    if (user.role === "public") return <Navigate to="/learning" replace />;
     return <Navigate to="/dashboard" replace />;
   }
 

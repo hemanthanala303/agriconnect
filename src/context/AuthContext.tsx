@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-export type UserRole = "farmer" | "expert" | "admin" | null;
+export type UserRole = "farmer" | "expert" | "admin" | "public" | null;
 
 interface User {
   id: string;
@@ -55,6 +55,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: "sarah@agriconnect.com",
           role: "expert",
           avatar: "https://picsum.photos/seed/sarah/200"
+        };
+        break;
+      case "public":
+        mockUser = {
+          id: "public-1",
+          name: "Guest User",
+          email: "guest@example.com",
+          role: "public",
+          avatar: "https://picsum.photos/seed/guest/200"
         };
         break;
       case "farmer":

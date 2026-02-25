@@ -19,9 +19,9 @@ import {
 const navItems = [
   { name: "Home", path: "/" },
   { name: "Dashboard", path: "/dashboard", roles: ["farmer"] },
-  { name: "Learning", path: "/learning", roles: ["farmer", "expert"] },
+  { name: "Learning", path: "/learning", roles: ["farmer", "expert", "public"] },
   { name: "Opportunities", path: "/opportunities", roles: ["farmer"] },
-  { name: "Community", path: "/community", roles: ["farmer", "expert"] },
+  { name: "Community", path: "/community", roles: ["farmer", "expert", "public"] },
   { name: "Experts", path: "/experts", roles: ["expert"] },
   { name: "Admin", path: "/admin", roles: ["admin"] },
 ];

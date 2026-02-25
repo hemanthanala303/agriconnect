@@ -36,7 +36,7 @@ export default function App() {
             <Route 
               path="/learning" 
               element={
-                <ProtectedRoute allowedRoles={["farmer", "expert"]}>
+                <ProtectedRoute allowedRoles={["farmer", "expert", "public"]}>
                   <Learning />
                 </ProtectedRoute>
               } 
@@ -54,7 +54,7 @@ export default function App() {
             <Route 
               path="/community" 
               element={
-                <ProtectedRoute allowedRoles={["farmer", "expert"]}>
+                <ProtectedRoute allowedRoles={["farmer", "expert", "public"]}>
                   <Community />
                 </ProtectedRoute>
               } 
@@ -62,7 +62,7 @@ export default function App() {
             <Route 
               path="/profile" 
               element={
-                <ProtectedRoute allowedRoles={["farmer", "expert", "admin"]}>
+                <ProtectedRoute allowedRoles={["farmer", "expert", "admin", "public"]}>
                   <Profile />
                 </ProtectedRoute>
               } 

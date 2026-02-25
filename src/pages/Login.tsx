@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "motion/react";
-import { Sprout, User, ShieldCheck, GraduationCap } from "lucide-react";
+import { Sprout, User, ShieldCheck, GraduationCap, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,6 +36,9 @@ export default function Login() {
         case "expert":
           navigate("/experts");
           break;
+        case "public":
+          navigate("/learning");
+          break;
         case "farmer":
         default:
           navigate("/dashboard");
@@ -65,9 +68,10 @@ export default function Login() {
         </div>
 
         <Tabs defaultValue="farmer" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="farmer">Farmer</TabsTrigger>
             <TabsTrigger value="expert">Expert</TabsTrigger>
+            <TabsTrigger value="public">Public</TabsTrigger>
             <TabsTrigger value="admin">Admin</TabsTrigger>
           </TabsList>
 
@@ -89,6 +93,17 @@ export default function Login() {
               label="Expert Login"
               description="Manage courses, content, and consultations."
               onLogin={() => handleLogin("expert")}
+              isLoading={isLoading}
+            />
+          </TabsContent>
+
+          <TabsContent value="public">
+            <LoginForm 
+              role="public" 
+              icon={<Users className="h-5 w-5" />} 
+              label="Public Login"
+              description="Access learning resources and community awareness."
+              onLogin={() => handleLogin("public")}
               isLoading={isLoading}
             />
           </TabsContent>
@@ -137,7 +152,12 @@ function LoginForm({ role, icon, label, description, onLogin, isLoading }: Login
             id={`${role}-email`} 
             type="email" 
             placeholder="name@example.com" 
-            defaultValue={role === 'admin' ? 'admin@agriconnect.com' : role === 'expert' ? 'sarah@agriconnect.com' : 'rajesh@example.com'}
+            defaultValue={
+              role === 'admin' ? 'admin@agriconnect.com' : 
+              role === 'expert' ? 'sarah@agriconnect.com' : 
+              role === 'public' ? 'guest@example.com' :
+              'rajesh@example.com'
+            }
           />
         </div>
         <div className="space-y-2">

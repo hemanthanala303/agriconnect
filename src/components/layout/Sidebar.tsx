@@ -6,13 +6,13 @@ import { useAuth } from "@/context/AuthContext";
 
 const sidebarItems = [
   { name: "Overview", path: "/dashboard", icon: LayoutDashboard, roles: ["farmer"] },
-  { name: "Learning Center", path: "/learning", icon: BookOpen, roles: ["farmer", "expert"] },
+  { name: "Learning Center", path: "/learning", icon: BookOpen, roles: ["farmer", "expert", "public"] },
   { name: "Opportunities", path: "/opportunities", icon: Briefcase, roles: ["farmer"] },
-  { name: "Community", path: "/community", icon: Users, roles: ["farmer", "expert"] },
+  { name: "Community", path: "/community", icon: Users, roles: ["farmer", "expert", "public"] },
   { name: "Expert Portal", path: "/experts", icon: UserCheck, roles: ["expert"] },
   { name: "Admin Dashboard", path: "/admin", icon: LayoutDashboard, roles: ["admin"] },
-  { name: "Settings", path: "/settings", icon: Settings, roles: ["farmer", "expert", "admin"] },
-  { name: "Help Center", path: "/help", icon: HelpCircle, roles: ["farmer", "expert", "admin"] },
+  { name: "Settings", path: "/settings", icon: Settings, roles: ["farmer", "expert", "admin", "public"] },
+  { name: "Help Center", path: "/help", icon: HelpCircle, roles: ["farmer", "expert", "admin", "public"] },
 ];
 
 export function Sidebar() {
