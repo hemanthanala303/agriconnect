@@ -1,20 +1,85 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+**AgriConnect** aims to solve these problems by creating a centralized digital ecosystem that connects farmers, experts, administrators, and the public.
 
-# Run and deploy your AI Studio app
+---
 
-This contains everything you need to run your app locally.
+## 🚀 Features
 
-View your app in AI Studio: https://ai.studio/apps/4f3e1967-cb6b-4bbe-a83f-ea02f9135243
+### 👨‍💼 Admin
 
-## Run Locally
+* Manage platform content
+* Approve and monitor posts
+* Manage user accounts
+* Ensure data authenticity
 
-**Prerequisites:**  Node.js
+### 🚜 Farmer
 
+* Access farming resources
+* Connect with agricultural experts
+* Explore government schemes
+* Post queries and share experiences
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### 🌿 Agricultural Expert
+
+* Provide consultancy and guidance
+* Publish educational content
+* Conduct digital awareness sessions
+
+### 🌍 Public User
+
+* Learn about agriculture
+* Participate in discussions
+* Support farmer initiatives
+
+---
+
+## 🛠 Tech Stack
+
+* ⚛ React.js
+* 🌐 HTML5
+* 🎨 CSS3
+* 🅱 Bootstrap
+* 📜 JavaScript
+
+---
+
+## 📂 Project Structure
+
+```
+AgriConnect/
+│
+├── public/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── assets/
+│   ├── App.js
+│   └── index.js
+│
+├── package.json
+└── README.md
+```
+
+---
+
+## ⚙ Installation & Setup
+
+Follow these steps to run the project locally:
+
+```bash
+# Clone the repository
+git clone https://github.com/hemanthanala303/agriconnect.git
+
+# Navigate to project folder
+cd agriconnect
+
+# Install dependencies
+npm install
+
+# Start development server
+npm start
+```
+
+The app will run at:
+👉 [http://localhost:3000/](http://localhost:3000/)
+
+---
