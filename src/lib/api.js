@@ -16,7 +16,7 @@
 import axios from "axios";
 
 // Get base URL from environment or default
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://agriconnect-backend-4407.onrender.com";
 const API_PREFIX = "/api/v1";
 
 /**
