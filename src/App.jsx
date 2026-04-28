@@ -1,7 +1,8 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { AuthProvider } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { useAuth } from "@/context/AuthContext";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
@@ -15,6 +16,21 @@ import Profile from "@/pages/Profile";
 import Help from "@/pages/Help";
 import Settings from "@/pages/Settings";
 
+
+
+// Component to handle Resources page - redirect authenticated farmers/experts to Learning
+function ResourcesRoute() {
+  const { user, isAuthenticated } = useAuth();
+  
+  // Redirect authenticated farmers and experts to Learning page
+  if (isAuthenticated && (user?.role === "farmer" || user?.role === "expert")) {
+    return <Navigate to="/learning" replace />;
+  }
+  
+  // Show public resources page for unauthenticated visitors
+  return <PublicResources />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -25,7 +41,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/help" element={<Help />} />
-            <Route path="/resources" element={<PublicResources />} />
+            <Route path="/resources" element={<ResourcesRoute />} />
 
             {/* Farmer Routes */}
             <Route 

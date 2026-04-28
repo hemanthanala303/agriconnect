@@ -7,33 +7,57 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
     const storedUser = localStorage.getItem("agri_user");
-    if (storedUser) {
+    const storedToken = localStorage.getItem("authToken");
+    
+    if (storedUser && storedToken) {
       try {
         setUser(JSON.parse(storedUser));
       } catch (e) {
         console.error("Failed to parse stored user:", e);
         localStorage.removeItem("agri_user");
+        localStorage.removeItem("authToken");
       }
     }
+    
+    // Mark initialization as complete
+    setIsInitialized(true);
   }, []);
 
   const login = async (email, password, role) => {
     setIsLoading(true);
     setError(null);
     try {
+      console.log("🔐 [AuthContext.login] Starting login with email:", email);
+      
       // API returns directly from response interceptor
       const response = await authAPI.login(email, password);
+      console.log("📨 [AuthContext.login] Login response:", response);
 
       // Backend returns: { success: true, data: { id, email, firstName, lastName, userType, token } }
-      // OR { token, data: { ... } } depending on implementation
-      const data = response?.data || response;
+      // OR { token, data: { ... } } OR { id, email, firstName, lastName, userType, token } depending on implementation
+      // Response interceptor returns response.data, so we get the data directly
+      let data = response;
+      
+      // If response has a nested data object, extract it
+      if (response?.data && !response?.token && !response?.id) {
+        data = response.data;
+      }
+      
+      console.log("🔍 [AuthContext.login] Extracted data:", data);
       
       if (!data) {
         throw new Error("Invalid response from server");
+      }
+
+      // Extract token - it might be at root or nested
+      const token = data?.token || response?.token;
+      if (!token) {
+        throw new Error("No token received from server");
       }
 
       // Map backend response to User object
@@ -41,7 +65,7 @@ export function AuthProvider({ children }) {
         id: data?.id,
         firstName: data?.firstName,
         lastName: data?.lastName,
-        name: `${data?.firstName || ""} ${data?.lastName || ""}`,
+        name: `${data?.firstName || ""} ${data?.lastName || ""}`.trim(),
         email: data?.email || email,
         role: (data?.userType || role || "farmer").toLowerCase(),
         userType: data?.userType,
@@ -50,21 +74,21 @@ export function AuthProvider({ children }) {
         avatar: data?.profilePicture,
       };
 
-      const token = data?.token;
-      if (!token) {
-        throw new Error("No token received from server");
-      }
+      console.log("✅ [AuthContext.login] User data created:", userData);
 
-      setUser(userData);
+      // Store in localStorage and state
       localStorage.setItem("agri_user", JSON.stringify(userData));
       localStorage.setItem("authToken", token);
+      setUser(userData);
 
+      console.log("💾 [AuthContext.login] Data saved to localStorage");
       return userData;
     } catch (err) {
       const errorMessage =
-        err?.message || err?.error || "Login failed. Please check your credentials.";
+        err?.message || err?.response?.data?.message || err?.error || "Login failed. Please check your credentials.";
+      console.error("❌ [AuthContext.login] Login error:", err, "Message:", errorMessage);
       setError(errorMessage);
-      throw err;
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -161,6 +185,7 @@ export function AuthProvider({ children }) {
       value={{
         user,
         isAuthenticated: !!user,
+        isInitialized,
         isLoading,
         error,
         login,

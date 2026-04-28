@@ -135,27 +135,45 @@ export default function Community() {
 
   const handleCreateThread = async () => {
     if (!newThreadData.title.trim()) {
-      alert("Please enter a title");
+      alert("Please enter a thread title");
+      return;
+    }
+    
+    if (!newThreadData.content.trim()) {
+      alert("Please enter thread content");
       return;
     }
     
     try {
-      await communityAPI.createForumThread(newThreadData);
+      console.log("📤 Creating thread with payload:", newThreadData);
+      
+      // Call API to create thread
+      const response = await communityAPI.createForumThread({
+        title: newThreadData.title.trim(),
+        category: newThreadData.category,
+        description: newThreadData.content.trim(),
+      });
+
+      console.log("✅ Thread created successfully:", response);
+
       // Add to local list
       const newThread = {
-        id: threads.length + 1,
-        ...newThreadData,
+        id: response?.data?.id || threads.length + 1,
+        title: newThreadData.title,
+        category: newThreadData.category,
+        content: newThreadData.content,
         author: "You",
         replies: 0,
         views: 0,
         lastActive: "just now",
+        ...response?.data,
       };
       setThreads([newThread, ...threads]);
       setNewThreadData({ title: "", category: "General", content: "" });
       setShowNewThreadForm(false);
     } catch (err) {
-      console.error("Error creating thread:", err);
-      alert("Failed to create thread");
+      console.error("❌ Error creating thread:", err);
+      alert(`Failed to create thread: ${err.message || "Unknown error"}`);
     }
   };
 

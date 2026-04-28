@@ -21,7 +21,7 @@ export default function Admin() {
     const fetchStats = async () => {
       try {
         setIsLoadingStats(true);
-        const response = await adminAPI.getDashboardStats();
+        const response = await adminAPI.getDashboard();
         
         if (response.success || response.data) {
           setStats(response.data || response);
@@ -42,7 +42,7 @@ export default function Admin() {
     const fetchUsers = async () => {
       try {
         setIsLoadingUsers(true);
-        const response = await adminAPI.getAllUsers();
+        const response = await adminAPI.getUsers();
         
         if (response.success || response.data) {
           const data = response.data || response;

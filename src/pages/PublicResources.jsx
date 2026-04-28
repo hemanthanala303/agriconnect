@@ -578,7 +578,12 @@ export default function PublicResources() {
               >
                 Sign in or Create Account
               </Button>
-              <Button variant="outline">Ask an Expert</Button>
+              <Button 
+                variant="outline"
+                onClick={() => navigate("/community")}
+              >
+                Ask an Expert
+              </Button>
             </div>
           </div>
         </motion.div>

@@ -18,7 +18,7 @@ import {
 
 const navItems = [
   { name: "Home", path: "/" },
-  { name: "Resources", path: "/resources", public: true },
+  { name: "Resources", path: "/resources", publicOnly: true },
   { name: "Dashboard", path: "/dashboard", roles: ["farmer"] },
   { name: "Learning", path: "/learning", roles: ["farmer", "expert"] },
   { name: "Opportunities", path: "/opportunities", roles: ["farmer"] },
@@ -39,8 +39,16 @@ export function Navbar() {
   };
 
   const filteredNavItems = navItems.filter(item => {
-    if (item.path === "/" || item.public) return true;
+    // Show home to everyone
+    if (item.path === "/") return true;
+    
+    // Show public-only items (like Resources) only to unauthenticated users
+    if (item.publicOnly) return !isAuthenticated;
+    
+    // If not authenticated, don't show protected routes
     if (!isAuthenticated) return false;
+    
+    // Show items that match user's role
     return item.roles?.includes(user?.role || "");
   });
 

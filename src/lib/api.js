@@ -50,11 +50,21 @@ apiClient.interceptors.request.use(
  */
 apiClient.interceptors.response.use(
   (response) => {
+    console.log("📨 [apiClient interceptor] Response from server:", {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      config: {
+        url: response.config.url,
+        method: response.config.method
+      }
+    });
     return response.data;
   },
   (error) => {
     // Handle 401 Unauthorized - Token expired or invalid
     if (error.response?.status === 401) {
+      console.error("❌ [apiClient interceptor] 401 Unauthorized:", error.response.data);
       localStorage.removeItem("authToken");
       localStorage.removeItem("agri_user");
       // Redirect to login
@@ -63,8 +73,16 @@ apiClient.interceptors.response.use(
 
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
-      console.error("Access denied:", error.response.data);
+      console.error("❌ [apiClient interceptor] 403 Forbidden:", error.response.data);
     }
+
+    console.error("❌ [apiClient interceptor] Request error:", {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message,
+      url: error.config?.url
+    });
 
     return Promise.reject(error.response?.data || error);
   }
@@ -359,9 +377,15 @@ export const cropAPI = {
    */
   getUserCrops: async (userId) => {
     try {
+      console.log("🌾 [cropAPI.getUserCrops] Fetching crops for user:", userId);
       const response = await apiClient.get(`/crops/user/${userId}`);
+      console.log("📥 [cropAPI.getUserCrops] Raw response:", response);
+      console.log("📥 [cropAPI.getUserCrops] Response type:", typeof response);
+      console.log("📥 [cropAPI.getUserCrops] Is array:", Array.isArray(response));
+      console.log("📥 [cropAPI.getUserCrops] Response keys:", Object.keys(response || {}));
       return response;
     } catch (error) {
+      console.error("❌ [cropAPI.getUserCrops] Error:", error);
       throw error;
     }
   },

@@ -15,6 +15,8 @@ export default function Login() {
   const location = useLocation();
   const [selectedRole, setSelectedRole] = useState("farmer");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [successEmail, setSuccessEmail] = useState("");
 
   // Get return url from location state or default to dashboard
   const from = location.state?.from?.pathname || "/dashboard";
@@ -26,6 +28,13 @@ export default function Login() {
 
   const toggleSignUp = () => {
     setIsSignUp(!isSignUp);
+    setRegistrationSuccess(false);
+    clearError();
+  };
+
+  const switchToLogin = () => {
+    setIsSignUp(false);
+    setRegistrationSuccess(false);
     clearError();
   };
 
@@ -51,10 +60,27 @@ export default function Login() {
 
         {!isSignUp ? (
           <>
+            {/* Registration Success Message */}
+            {registrationSuccess && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-center"
+              >
+                <div className="text-sm font-medium text-green-800">
+                  ✅ Registration Successful!
+                </div>
+                <p className="mt-1 text-sm text-green-700">
+                  Your account has been created. Please log in with your email to access AgriConnect.
+                </p>
+              </motion.div>
+            )}
+
             <Tabs value={selectedRole || "farmer"} onValueChange={handleRoleChange} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsList className="grid w-full grid-cols-3 mb-8">
                 <TabsTrigger value="farmer">Farmer</TabsTrigger>
                 <TabsTrigger value="expert">Expert</TabsTrigger>
+                <TabsTrigger value="admin">Admin</TabsTrigger>
               </TabsList>
 
               <TabsContent value="farmer">
@@ -68,6 +94,7 @@ export default function Login() {
                   onLogin={login}
                   navigate={navigate}
                   from={from}
+                  defaultEmail={successEmail}
                 />
               </TabsContent>
 
@@ -82,6 +109,22 @@ export default function Login() {
                   onLogin={login}
                   navigate={navigate}
                   from={from}
+                  defaultEmail={successEmail}
+                />
+              </TabsContent>
+
+              <TabsContent value="admin">
+                <LoginForm
+                  role="admin"
+                  icon={<User className="h-5 w-5" />}
+                  label="Admin Login"
+                  description="Manage users, content, and system settings."
+                  isLoading={isLoading}
+                  error={error}
+                  onLogin={login}
+                  navigate={navigate}
+                  from={from}
+                  defaultEmail={successEmail}
                 />
               </TabsContent>
 
@@ -107,8 +150,11 @@ export default function Login() {
               isLoading={isLoading}
               error={error}
               onRegister={register}
-              navigate={navigate}
-              from={from}
+              onRegistrationSuccess={(email) => {
+                setSuccessEmail(email);
+                setRegistrationSuccess(true);
+                setIsSignUp(false);
+              }}
             />
             
             <div className="mt-6 text-center text-sm">
@@ -116,7 +162,7 @@ export default function Login() {
                 Already have an account?{" "}
                 <button
                   type="button"
-                  onClick={toggleSignUp}
+                  onClick={switchToLogin}
                   className="font-semibold text-green-600 hover:text-green-700"
                 >
                   Sign in here
@@ -140,8 +186,9 @@ function LoginForm({
   onLogin,
   navigate,
   from,
+  defaultEmail = "",
 }) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(defaultEmail);
   const [password, setPassword] = useState("");
   const [localError, setLocalError] = useState("");
 
@@ -155,12 +202,18 @@ function LoginForm({
     }
 
     try {
+      console.log("🔐 [LoginForm.handleSubmit] Starting login...");
       // Pass role as optional parameter for UI context, but login service uses email/password only
-      await onLogin(email, password, role);
-      // Navigate on successful login
+      const loginResult = await onLogin(email, password, role);
+      console.log("✅ [LoginForm.handleSubmit] Login successful, result:", loginResult);
+      
+      // Navigate on successful login - use the from location or dashboard
+      console.log("🧭 [LoginForm.handleSubmit] Navigating to:", from);
       navigate(from, { replace: true });
     } catch (err) {
-      setLocalError(err.message || "Login failed");
+      console.error("❌ [LoginForm.handleSubmit] Login failed:", err);
+      const errorMsg = err?.message || err?.error || "Login failed. Please try again.";
+      setLocalError(errorMsg);
     }
   };
 
@@ -223,8 +276,7 @@ function SignUpForm({
   isLoading,
   error,
   onRegister,
-  navigate,
-  from,
+  onRegistrationSuccess,
 }) {
   const [formData, setFormData] = useState({
     firstName: "",
@@ -311,9 +363,19 @@ function SignUpForm({
 
       await onRegister(submitPayload);
 
-      // Navigate on successful registration
+      // ✅ Registration successful - show success message and switch to login
       console.log("✅ Registration successful!");
-      navigate(from, { replace: true });
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        userType: "farmer",
+        phone: "",
+        address: "",
+      });
+      onRegistrationSuccess(formData.email);
     } catch (err) {
       console.error("❌ Registration error:", err);
       setLocalError(err.message || "Registration failed");

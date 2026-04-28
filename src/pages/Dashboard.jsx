@@ -30,16 +30,24 @@ import { useFetch } from "@/lib/hooks";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  console.log("👤 [Dashboard] Current user:", user);
   const [isAddCropOpen, setIsAddCropOpen] = useState(false);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [crops, setCrops] = useState([]);
   const [tasks, setTasks] = useState([]);
 
   // Add Crop Form State
-  const [newCrop, setNewCrop] = useState({ name: "", area: "", harvestDate: undefined });
+  const [newCrop, setNewCrop] = useState({ 
+    name: "", 
+    variety: "",
+    area: "", 
+    soilType: "",
+    irrigationType: "",
+    harvestDate: undefined 
+  });
 
   // Schedule Task Form State
-  const [newTask, setNewTask] = useState({ title: "", date: undefined, priority: "Medium" });
+  const [newTask, setNewTask] = useState({ title: "", description: "", date: undefined, priority: "Medium" });
 
   // Fetch crops
   const { data: cropsData, isLoading: cropsLoading, error: cropsError, refetch: refetchCrops } = useFetch(
@@ -61,64 +69,165 @@ export default function Dashboard() {
 
   // Update local state when data is fetched
   useEffect(() => {
+    console.log("🌾 [Dashboard] cropsData updated:", cropsData);
     if (cropsData) {
-      setCrops(Array.isArray(cropsData) ? cropsData : cropsData.crops || []);
+      console.log("📊 [Dashboard] cropsData type:", typeof cropsData);
+      console.log("📊 [Dashboard] cropsData is array:", Array.isArray(cropsData));
+      console.log("📊 [Dashboard] cropsData keys:", Object.keys(cropsData || {}));
+      
+      let cropsArray = [];
+      if (Array.isArray(cropsData)) {
+        cropsArray = cropsData;
+      } else if (cropsData?.data && Array.isArray(cropsData.data)) {
+        cropsArray = cropsData.data;
+      } else if (cropsData?.crops && Array.isArray(cropsData.crops)) {
+        cropsArray = cropsData.crops;
+      } else if (cropsData?.content && Array.isArray(cropsData.content)) {
+        cropsArray = cropsData.content;
+      }
+      
+      console.log("✅ [Dashboard] Setting crops array:", cropsArray);
+      setCrops(cropsArray);
     }
   }, [cropsData]);
 
   useEffect(() => {
+    console.log("📋 [Dashboard] tasksData updated:", tasksData);
     if (tasksData) {
-      setTasks(Array.isArray(tasksData) ? tasksData : tasksData.tasks || []);
+      let tasksArray = [];
+      if (Array.isArray(tasksData)) {
+        tasksArray = tasksData;
+      } else if (tasksData?.data && Array.isArray(tasksData.data)) {
+        tasksArray = tasksData.data;
+      } else if (tasksData?.tasks && Array.isArray(tasksData.tasks)) {
+        tasksArray = tasksData.tasks;
+      } else if (tasksData?.content && Array.isArray(tasksData.content)) {
+        tasksArray = tasksData.content;
+      }
+      
+      console.log("✅ [Dashboard] Setting tasks array:", tasksArray);
+      setTasks(tasksArray);
     }
   }, [tasksData]);
 
   const handleAddCrop = async () => {
-    if (!newCrop.name || !newCrop.area || !newCrop.harvestDate) return;
+    if (!newCrop.name || !newCrop.area || !newCrop.harvestDate) {
+      alert("Please fill in all required fields (Name, Area, Harvest Date)");
+      return;
+    }
+
+    if (!user?.id) {
+      alert("User not authenticated. Please log in again.");
+      return;
+    }
 
     try {
-      await cropAPI.createCrop({
+      console.log("🌾 [Dashboard.handleAddCrop] Adding crop with data:", newCrop);
+      console.log("👤 [Dashboard.handleAddCrop] User ID:", user?.id);
+      
+      // Call correct API method: cropAPI.addCrop
+      const cropData = {
+        userId: user?.id,  // 🔥 INCLUDE USER ID
         name: newCrop.name,
         area: parseFloat(newCrop.area),
         harvestDate: format(newCrop.harvestDate, "yyyy-MM-dd"),
-      });
+        // Add optional fields that might be in the form
+        variety: newCrop.variety || "",
+        soilType: newCrop.soilType || "",
+        irrigationType: newCrop.irrigationType || "",
+      };
 
-      // Refresh crops list
-      refetchCrops();
+      console.log("📤 [Dashboard.handleAddCrop] Sending to API:", cropData);
+      const response = await cropAPI.addCrop(cropData);
+      console.log("✅ [Dashboard.handleAddCrop] Crop added successfully:", response);
+
+      // Reset form
       setIsAddCropOpen(false);
-      setNewCrop({ name: "", area: "", harvestDate: undefined });
+      setNewCrop({ name: "", variety: "", area: "", soilType: "", irrigationType: "", harvestDate: undefined });
+      alert("✅ Crop added successfully!");
+      
+      // Refresh crops list after successful add
+      console.log("🔄 [Dashboard.handleAddCrop] Refetching crops...");
+      setTimeout(() => {
+        refetchCrops().then((data) => {
+          console.log("✅ [Dashboard.handleAddCrop] Crops refetched:", data);
+        }).catch((err) => {
+          console.error("❌ [Dashboard.handleAddCrop] Error refetching crops:", err);
+        });
+      }, 500);
     } catch (err) {
-      console.error("Error adding crop:", err);
+      console.error("❌ [Dashboard.handleAddCrop] Error adding crop:", err);
+      const errorMsg = err?.message || err?.response?.data?.message || "Failed to add crop. Please try again.";
+      alert(`Failed to add crop: ${errorMsg}`);
     }
   };
 
   const handleAddTask = async () => {
-    if (!newTask.title || !newTask.date) return;
+    if (!newTask.title || !newTask.date) {
+      alert("Please fill in all required fields (Title and Due Date)");
+      return;
+    }
+
+    if (!user?.id) {
+      alert("User not authenticated. Please log in again.");
+      return;
+    }
 
     try {
-      await farmDataAPI.createTask({
+      console.log("📋 [Dashboard.handleAddTask] Adding task with data:", newTask);
+      console.log("👤 [Dashboard.handleAddTask] User ID:", user?.id);
+      
+      // Call farmDataAPI to create task
+      const taskData = {
+        userId: user?.id,  // 🔥 INCLUDE USER ID
         title: newTask.title,
+        description: newTask.description || "",
         dueDate: format(newTask.date, "yyyy-MM-dd"),
-        priority: newTask.priority,
-      });
+        priority: newTask.priority || "Medium",
+        completed: false,
+      };
 
-      // Refresh tasks list
-      refetchTasks();
+      console.log("📤 [Dashboard.handleAddTask] Sending to API:", taskData);
+      const response = await farmDataAPI.createTask(taskData);
+      console.log("✅ [Dashboard.handleAddTask] Task added successfully:", response);
+
+      // Reset form
       setIsScheduleOpen(false);
-      setNewTask({ title: "", date: undefined, priority: "Medium" });
+      setNewTask({ title: "", description: "", date: undefined, priority: "Medium" });
+      alert("✅ Task scheduled successfully!");
+      
+      // Refresh tasks list after successful add
+      console.log("🔄 [Dashboard.handleAddTask] Refetching tasks...");
+      setTimeout(() => {
+        refetchTasks().then((data) => {
+          console.log("✅ [Dashboard.handleAddTask] Tasks refetched:", data);
+        }).catch((err) => {
+          console.error("❌ [Dashboard.handleAddTask] Error refetching tasks:", err);
+        });
+      }, 500);
     } catch (err) {
-      console.error("Error adding task:", err);
+      console.error("❌ [Dashboard.handleAddTask] Error scheduling task:", err);
+      const errorMsg = err?.message || err?.response?.data?.message || "Failed to schedule task. Please try again.";
+      alert(`Failed to schedule task: ${errorMsg}`);
     }
   };
 
   const toggleTaskCompletion = async (id) => {
     try {
+      console.log("✓ [Dashboard.toggleTaskCompletion] Toggling task:", id);
       const task = tasks.find((t) => t.id === id);
       if (task) {
-        await farmDataAPI.updateTask(id, { completed: !task.completed });
-        refetchTasks();
+        const updateData = { completed: !task.completed };
+        console.log("📤 [Dashboard.toggleTaskCompletion] Sending update:", updateData);
+        await farmDataAPI.updateTask(id, updateData);
+        console.log("✅ [Dashboard.toggleTaskCompletion] Task updated successfully");
+        await refetchTasks();
+      } else {
+        console.warn("⚠️ [Dashboard.toggleTaskCompletion] Task not found:", id);
       }
     } catch (err) {
-      console.error("Error updating task:", err);
+      console.error("❌ [Dashboard.toggleTaskCompletion] Error updating task:", err);
+      alert(`Failed to update task: ${err?.message || "Unknown error"}`);
     }
   };
 
@@ -189,6 +298,17 @@ export default function Dashboard() {
                       </PopoverContent>
                     </Popover>
                   </div>
+                  <div className="grid grid-cols-4 items-start gap-4">
+                    <Label htmlFor="task-description" className="text-right mt-2">Description</Label>
+                    <textarea 
+                      id="task-description" 
+                      className="col-span-3 rounded-md border border-stone-300 px-3 py-2 text-sm"
+                      rows="3"
+                      placeholder="Add details about this task..."
+                      value={newTask.description}
+                      onChange={(e) => setNewTask({...newTask, description: e.target.value})}
+                    />
+                  </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label className="text-right">Priority</Label>
                     <Select 
@@ -226,7 +346,7 @@ export default function Dashboard() {
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="crop-name" className="text-right">Crop Name</Label>
+                    <Label htmlFor="crop-name" className="text-right">Crop Name *</Label>
                     <Input 
                       id="crop-name" 
                       className="col-span-3" 
@@ -236,14 +356,57 @@ export default function Dashboard() {
                     />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="crop-area" className="text-right">Area (Acres)</Label>
+                    <Label htmlFor="crop-variety" className="text-right">Variety</Label>
+                    <Input 
+                      id="crop-variety" 
+                      className="col-span-3"
+                      placeholder="e.g. Basmati 370"
+                      value={newCrop.variety}
+                      onChange={(e) => setNewCrop({...newCrop, variety: e.target.value})}
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="crop-area" className="text-right">Area (Acres) *</Label>
                     <Input 
                       id="crop-area" 
                       type="number" 
                       className="col-span-3"
+                      placeholder="5"
                       value={newCrop.area}
                       onChange={(e) => setNewCrop({...newCrop, area: e.target.value})}
                     />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="crop-soil" className="text-right">Soil Type</Label>
+                    <select
+                      id="crop-soil"
+                      className="col-span-3 rounded-md border border-stone-300 bg-white px-3 py-2"
+                      value={newCrop.soilType}
+                      onChange={(e) => setNewCrop({...newCrop, soilType: e.target.value})}
+                    >
+                      <option value="">Select soil type</option>
+                      <option value="Loamy">Loamy</option>
+                      <option value="Clay">Clay</option>
+                      <option value="Sandy">Sandy</option>
+                      <option value="Alluvial">Alluvial</option>
+                      <option value="Laterite">Laterite</option>
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="crop-irrigation" className="text-right">Irrigation</Label>
+                    <select
+                      id="crop-irrigation"
+                      className="col-span-3 rounded-md border border-stone-300 bg-white px-3 py-2"
+                      value={newCrop.irrigationType}
+                      onChange={(e) => setNewCrop({...newCrop, irrigationType: e.target.value})}
+                    >
+                      <option value="">Select irrigation type</option>
+                      <option value="Drip">Drip</option>
+                      <option value="Flood">Flood</option>
+                      <option value="Sprinkler">Sprinkler</option>
+                      <option value="Canal">Canal</option>
+                      <option value="Rainfed">Rainfed</option>
+                    </select>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label className="text-right">Est. Harvest</Label>
@@ -291,10 +454,10 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {crops.reduce((sum, c) => sum + (parseFloat(c.area) || 0), 0).toFixed(1)} Acres
+                    {cropsLoading ? '-' : crops.reduce((sum, c) => sum + (parseFloat(c.area) || 0), 0).toFixed(1)} {!cropsLoading && 'Acres'}
                   </div>
                   <p className="text-xs text-stone-500">
-                    {crops.length > 0 ? "Active cultivation area" : "No crops yet"}
+                    {cropsLoading ? 'Loading...' : crops.length > 0 ? "Active cultivation area" : "No crops yet"}
                   </p>
                 </CardContent>
               </Card>
@@ -304,10 +467,10 @@ export default function Dashboard() {
                   <Sprout className="h-4 w-4 text-stone-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{crops.length}</div>
+                  <div className="text-2xl font-bold">{cropsLoading ? '-' : crops.length}</div>
                   <p className="text-xs text-stone-500">
-                    {crops.length > 0
-                      ? crops.slice(0, 2).map(c => c.name.split(' ')[0]).join(', ') + (crops.length > 2 ? '...' : '')
+                    {cropsLoading ? 'Loading...' : crops.length > 0
+                      ? crops.slice(0, 2).map(c => (c.name || 'Crop').split(' ')[0]).join(', ') + (crops.length > 2 ? '...' : '')
                       : "No active crops"}
                   </p>
                 </CardContent>
@@ -318,9 +481,9 @@ export default function Dashboard() {
                   <ArrowUpRight className="h-4 w-4 text-green-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{tasks.filter(t => !t.completed).length}</div>
+                  <div className="text-2xl font-bold">{tasksLoading ? '-' : tasks.filter(t => !t.completed).length}</div>
                   <p className="text-xs text-stone-500">
-                    {tasks.filter(t => t.completed).length} completed
+                    {tasksLoading ? 'Loading...' : tasks.filter(t => t.completed).length + ' completed'}
                   </p>
                 </CardContent>
               </Card>
@@ -333,32 +496,35 @@ export default function Dashboard() {
                 <CardDescription>Monitor the health and progress of your current crops.</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
-                  {crops.map((crop) => (
-                    <div key={crop.id} className="flex items-center justify-between border-b border-stone-100 pb-4 last:border-0 last:pb-0">
-                      <div className="flex items-center gap-4">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600">
-                          <Sprout className="h-5 w-5" />
+                {crops.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Sprout className="h-12 w-12 text-stone-300 mx-auto mb-3" />
+                    <p className="text-stone-500">No crops added yet. Click "Add Crop" to get started!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {crops.map((crop) => (
+                      <div key={crop.id} className="flex items-center justify-between border-b border-stone-100 pb-4 last:border-0 last:pb-0">
+                        <div className="flex items-center gap-4">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600">
+                            <Sprout className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-stone-900">{crop.name || 'Unnamed Crop'}</p>
+                            <p className="text-sm text-stone-500">
+                              {crop.area} Acres • {crop.soilType || 'N/A'} Soil • Harvest: {crop.harvestDate ? format(new Date(crop.harvestDate), 'MMM d, yyyy') : 'N/A'}
+                            </p>
+                            {crop.variety && <p className="text-xs text-stone-400 mt-1">Variety: {crop.variety}</p>}
+                            {crop.irrigationType && <p className="text-xs text-stone-400">Irrigation: {crop.irrigationType}</p>}
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-stone-900">{crop.name}</p>
-                          <p className="text-sm text-stone-500">{crop.area} • Harvest: {crop.harvest}</p>
+                        <div className="flex flex-col items-end gap-1">
+                          <Badge variant="secondary">Active</Badge>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-1">
-                        <Badge variant={crop.status === 'Ready' ? 'success' : 'secondary'}>
-                          {crop.status}
-                        </Badge>
-                        <div className="h-2 w-24 rounded-full bg-stone-100">
-                          <div 
-                            className="h-full rounded-full bg-green-500" 
-                            style={{ width: `${crop.progress}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -405,7 +571,28 @@ export default function Dashboard() {
               <TabsContent value="activity" className="mt-4">
                 <Card>
                   <CardContent className="pt-6">
-                    <p className="text-sm text-stone-500">No recent activity.</p>
+                    {crops.length === 0 ? (
+                      <p className="text-sm text-stone-500 text-center py-4">No recent activity.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {crops.map((crop, index) => (
+                          <div key={crop.id} className="flex items-start gap-3 border-l-4 border-green-400 pl-4">
+                            <div className="flex-1">
+                              <p className="font-medium text-stone-900">Added {crop.name}</p>
+                              <p className="text-sm text-stone-500 mt-1">
+                                Area: {crop.area} Acres • Soil Type: {crop.soilType || 'N/A'}
+                              </p>
+                              <p className="text-xs text-stone-400 mt-1">
+                                Harvest Date: {crop.harvestDate ? format(new Date(crop.harvestDate), 'MMM d, yyyy') : 'N/A'}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <Badge variant="outline">✓ Active</Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>

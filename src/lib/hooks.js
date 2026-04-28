@@ -12,17 +12,30 @@ export function useFetch(fetchFn, dependencies = []) {
     setIsLoading(true);
     setError(null);
     try {
+      console.log("🔄 [useFetch.refetch] Starting fetch with dependencies:", dependencies);
       const result = await fetchFn();
+      console.log("📥 [useFetch.refetch] Fetched data:", result);
+      console.log("📥 [useFetch.refetch] Data type:", typeof result);
+      console.log("📥 [useFetch.refetch] Is array:", Array.isArray(result));
       setData(result);
+      return result;
     } catch (err) {
-      setError(err.message || "Failed to fetch data");
-      console.error("Fetch error:", err);
+      const errorMessage = err?.message || err?.data?.message || "Failed to fetch data";
+      setError(errorMessage);
+      console.error("❌ [useFetch.refetch] Fetch error:", {
+        message: errorMessage,
+        error: err,
+        status: err?.status,
+        data: err?.data
+      });
+      throw err;
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log("⚡ [useFetch] useEffect triggered with dependencies:", dependencies);
     refetch();
   }, dependencies);
 
