@@ -15,15 +15,9 @@
 
 import axios from "axios";
 
-// Get base URL from environment or default
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://agriconnect-backend-4407.onrender.com";
-const API_PREFIX = "/api/v1";
-
-/**
- * Create axios instance with base configuration
- */
+// Create axios instance with direct deployment URL
 const apiClient = axios.create({
-  baseURL: `${API_BASE_URL}${API_PREFIX}`,
+  baseURL: "https://agriconnect-backend-4407.onrender.com/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
